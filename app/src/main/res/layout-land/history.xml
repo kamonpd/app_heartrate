@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/txtHistory"
+        android:layout_width="421dp"
+        android:layout_height="409dp"
+        android:text="@string/history"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/txtBpmAverage"
+        android:layout_width="124dp"
+        android:layout_height="31dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="88dp"
+        android:text="@string/bpmaverage"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.989"
+        app:layout_constraintStart_toEndOf="@+id/txtHistory"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtNote"
+        android:layout_width="125dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="52dp"
+        android:layout_marginEnd="88dp"
+        android:text="@string/enter_a_note"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/txtHistory"
+        app:layout_constraintTop_toBottomOf="@+id/txtBpmAverage" />
+
+    <EditText
+        android:id="@+id/edtSave"
+        android:layout_width="275dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="52dp"
+        android:autofillHints=""
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="@string/editsave"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.157"
+        app:layout_constraintStart_toEndOf="@+id/txtHistory"
+        app:layout_constraintTop_toBottomOf="@+id/txtNote" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:text="@string/save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/txtHistory"
+        app:layout_constraintTop_toBottomOf="@+id/edtSave" />
+</androidx.constraintlayout.widget.ConstraintLayout>
