@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -27,7 +28,6 @@ import java.util.Queue;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private TextView bpmtxt,ibitxt,statustxt;
     private ToggleButton startbtn;
     private Button historybtn,connectbtn,disconnectbtn;
     public static String bpmaverage;
@@ -40,19 +40,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private NoteHelper helper;
     boolean streamChecking = false;
     Queue<Integer> bpmQueue = new LinkedList<Integer>();
-    int bpmQueueCapacity = 20;
+    int bpmQueueCapacity = 20;          //ใช้เก็บค่า bpm 20 ค่า
     int bpmTotal;
-    static boolean Lock;//whether lock the x-axis to 0-5
-    static boolean AutoScrollX;//auto scroll to the last x value
-    static boolean Stream;//Start or stop streaming
-    int old_interval=0;
-    int new_interval=0;
-    int mean_interval=20;
+    static boolean Lock;
+    static boolean AutoScrollX;
+    static boolean Stream;
 
     Handler handler1 = new Handler(){
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
+            // หาสถานะ bluetooth
             switch (msg.what) {
                 case BluetoothActivity.CONNECTING_STATUS:
                     if (msg.arg1 == 1) {
@@ -73,12 +71,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             streamChecking = true;
                         }
                         byte[] readBuf = (byte[]) msg.obj;
-                        String strIncom = new String(readBuf, 0, 5);                 // create string from bytes array
-                        String bpm = new String(readBuf, 0, 80);
-                        String ibi = new String(readBuf, 0, 80);
+                        String strIncom = new String(readBuf, 0, 5);                      //เก็บข้อความจาก bluetooth
+                        String bpm = new String(readBuf, 0, 80);                          //เก็บก่า bpm
+                        String ibi = new String(readBuf, 0, 80);                          //เก็บค่า ibi
                         Log.d("strIncom", strIncom);
 
-                        if (strIncom.indexOf('.') == 2 && strIncom.indexOf('s') == 0) {
+                        if (strIncom.indexOf('s') == 0 && strIncom.indexOf('.') == 2){                //หาข้อความรูปแบบ s600.45. มั้ง
                             strIncom = strIncom.replace("s", "");
                             if (isFloatNumber(strIncom)) {
                                 Series.appendData(new GraphViewData(graph2LastXValue, Double.parseDouble(strIncom)), AutoScrollX);
@@ -95,14 +93,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                         }
 
-                        int temp1, temp2;
+                        int temp1, temp2;                                                           //ใช้เก็บ index ของค่า bpm
                         temp1 = bpm.indexOf('b');
                         temp2 = bpm.indexOf(',');
                         if (temp1 >= 0 && temp2 >= temp1) {
                             bpm = bpm.substring(temp1 + 1, temp2);
                             TextView BPM = findViewById(R.id.txtBpm);
                             BPM.setText(bpm);
-                            if (bpmQueue.size() >= bpmQueueCapacity) {
+                            if (bpmQueue.size() >= bpmQueueCapacity) {                              //ถ้าเก็บค่า bpm ครบ 20 ค่า
                                 if (BluetoothActivity.ConnectedThread != null) {
                                     BluetoothActivity.ConnectedThread.write("S");
                                 }
@@ -110,17 +108,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 startActivity(intent);
                                 return;
                             }
-                            bpmQueue.add(Integer.valueOf(bpm));
-                            bpmTotal += Integer.valueOf(bpm);
-                            HistoryActivity.addNote(bpm, helper);
-                            bpmaverage = String.valueOf(bpmTotal / bpmQueue.size());
+                            bpmQueue.add(Integer.valueOf(bpm));                                     //เก็บจำนวน bpm แต่ละครั้ง
+                            bpmTotal += Integer.valueOf(bpm);                                       //เก็บผลรวมของ bpm
+                            HistoryActivity.addNote(bpm, helper);                                   //เพิ่ม bpm ลง db
+                            bpmaverage = String.valueOf(bpmTotal / bpmQueue.size());                //bpm average
 
-                            temp1 = ibi.indexOf('i');
+                            temp1 = ibi.indexOf('i');                                               //ใช้เก็บค่า index ของ ibi
                             temp2 = ibi.indexOf('e');
                             if (temp1 >= 0 && temp2 >= temp1) {
                                 ibi = ibi.substring(temp1 + 1, temp2);
-                                old_interval = new_interval;
-                                new_interval = Integer.parseInt(ibi);
                                 TextView IBI = findViewById(R.id.txtibi);
                                 IBI.setText(ibi);
                             }
@@ -129,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
             }
         }
+        //ใช้เช็คว่าแปลง string เเป็น float ได้ไหม
         public boolean isFloatNumber (String num){
             //Log.d("checkfloatNum", num);
             try {
@@ -144,13 +141,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        init();
         btninit();
+    }
 
-
+    private void init(){
+        BluetoothActivity.gethandler(handler1);
+        //init graphview
+        GraphView = findViewById(R.id.linearLayout);
+        Series = new GraphViewSeries("Signal",
+                 new GraphViewStyle(Color.YELLOW, 2),
+                 new GraphViewData[] {new GraphViewData(0, 0)});
+        graphView = new LineGraphView(this , "Heart Rate");
+        graphView.setViewPort(0, Xview);
+        graphView.setScrollable(true);
+        graphView.setScalable(true);
+        graphView.setShowLegend(true);
+        graphView.setLegendAlign(LegendAlign.BOTTOM);
+        graphView.setManualYAxis(true);
+        graphView.setManualYAxisBounds(10,0);
+        graphView.addSeries(Series); // data
+        GraphView.addView(graphView);
     }
 
     void btninit(){
+        //ตั้งค่าปุ่ม
         startbtn = findViewById(R.id.btnStart);
         startbtn.setOnClickListener(this);
         historybtn = findViewById(R.id.btnHistory);
@@ -165,38 +180,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.btnStart:
+                // startbtn  presss?
                 if(startbtn.isChecked()){
-                    //connected?
-                    if(true){
-                        //write w to bluetooth
+                    //bluetooth connect?
+                    if(BluetoothActivity.ConnectedThread != null){
+                        BluetoothActivity.ConnectedThread.write("W");
+                        ClearQueue();
                     }
                 }
                 else {
-
+                    if(BluetoothActivity.ConnectedThread != null) BluetoothActivity.ConnectedThread.write("S");
                 }
                 break;
             case R.id.btnHistory:
+                //open Historyactivity
                 Intent intentHT = new Intent(MainActivity.this, HistoryActivity.class);
                 startActivity(intentHT);
                 break;
             case R.id.btnConnect:
+                //open BluetoothActivity
                 Intent intentBT = new Intent(MainActivity.this, BluetoothActivity.class);
                 startActivity(intentBT);
                 break;
             case R.id.btnDisconnect:
+                if(BluetoothActivity.ConnectedThread != null){
+                    BluetoothActivity.ConnectedThread.write("D");
+                }
+                BluetoothActivity.disconnect();
                 break;
-
         }
     }
 
     void ClearQueue(){
         bpmQueue.clear();
         bpmTotal = 0;
-        HistoryActivity.clearNote(helper);
+        HistoryActivity.clearNote(helper);                                                          //ยังไม่ค่อยเข้าใจ .clearNote
     }
 
     @Override
     public void onBackPressed() {
+        if (BluetoothActivity.ConnectedThread != null) {
+            BluetoothActivity.ConnectedThread.write("S");
+        }
         super.onBackPressed();
     }
 

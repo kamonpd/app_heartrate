@@ -74,7 +74,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     public static void addNote(String bpm, NoteHelper helper){
-        addNote(bpm, "", helper);
+        addNote(bpm,"", helper);
     }
 
     public static void addNote(String bpm, String activity, NoteHelper helper){
@@ -83,7 +83,7 @@ public class HistoryActivity extends AppCompatActivity {
         values.put(TIME, System.currentTimeMillis());
         values.put(ACTIVITY, activity);
         values.put(CONTENT, bpm);
-        db.insertOrThrow(TABLE_NAME, null, values);
+        db.insertOrThrow(TABLE_NAME,null, values);
     }
 
     public static void clearNote(NoteHelper helper){
